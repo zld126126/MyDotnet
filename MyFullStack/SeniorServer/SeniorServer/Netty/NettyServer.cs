@@ -11,7 +11,6 @@ namespace TcpServer
 {
     public class NettyServer 
     {
-        /**�Ƿ�������*/
         private int mBlocking = 1; 
         public NettyServer() { }
         public  async Task RunServerAsync()
@@ -43,14 +42,13 @@ namespace TcpServer
                 }
                 ));
                 // ServerSettings.Port
-                IChannel boundChannel = await bootstrap.BindAsync(10188);//�˿ں�
+                IChannel boundChannel = await bootstrap.BindAsync(10188);
 
                 while (mBlocking > 0) { };
-                await boundChannel.CloseAsync();//�ر�
+                await boundChannel.CloseAsync();
             }
             finally
             {
-                //�ر��ͷŲ��˳�
                 await Task.WhenAll(
                 bossGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
                 workerGroup.ShutdownGracefullyAsync(TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)));

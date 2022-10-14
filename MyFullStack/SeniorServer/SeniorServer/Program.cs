@@ -15,6 +15,7 @@ namespace SeniorServer
                 S_NettyServer.RunServerAsync().Wait();
             });
             nettyThread.Start();
+            Debug.Instance.Log("Netty启动完成");
         }
     }
 }
