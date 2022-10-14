@@ -20,17 +20,6 @@ public class ProtocolMgr
         });
     }
 
-    public static void SocketTest() 
-    {
-        MsgTest msg = new MsgTest();
-        msg.ReqContent = "Dong";
-        NetManager.Instance.SendMessage(msg);
-        NetManager.Instance.AddProtoListener(ProtocolEnum.MsgTest, (resmsg) =>
-        {
-            Debug.Log("测试回调：" + ((MsgTest)resmsg).RecContent);
-        });
-    }
-
     /// <summary>
     /// 注册协议提交
     /// </summary>

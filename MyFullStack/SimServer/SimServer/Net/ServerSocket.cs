@@ -58,7 +58,7 @@ namespace SimServer.Net
                 }
                 catch (Exception e) 
                 {
-                    Debug.LogError(e);
+                    Debug.LogError(e.ToString());
                 }
 
                 for (int i = m_CheckReadList.Count - 1; i >= 0; i--)
@@ -220,7 +220,7 @@ namespace SimServer.Net
                 msgBase = MsgBase.Decode(proto, readbuff.Bytes, readbuff.ReadIdx, bodyCount);
                 if (msgBase == null) 
                 {
-                    Debug.LogError("{0}协议内容解析错误：" + proto.ToString());
+                    Debug.LogError("{0}协议内容解析错误：" ,proto.ToString());
                     CloseClient(clientSocket);
                     return;
                 }

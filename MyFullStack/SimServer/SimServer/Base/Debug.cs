@@ -14,53 +14,53 @@ public static class Debug
         m_Log = LogManager.GetLogger(typeof(Debug));
     }
 
-    public static void Log(object message)
-    {
-        m_Log.Debug(message);
-    }
-
     public static void Log(string format, params object[] args)
     {
+        if (args.Length == 0)
+        {
+            m_Log.Debug(format);
+            return;
+        }
         m_Log.DebugFormat(format, args);
-    }
-
-    public static void LogInfo(object message)
-    {
-        m_Log.Info(message);
     }
 
     public static void LogInfo(string format, params object[] args)
     {
+        if (args.Length == 0)
+        {
+            m_Log.Info(format);
+            return;
+        }
         m_Log.InfoFormat(format, args);
-    }
-
-    public static void LogWarn(object message)
-    {
-        m_Log.Warn(message);
     }
 
     public static void LogWarn(string format, params object[] args)
     {
+        if (args.Length == 0)
+        {
+            m_Log.Warn(format);
+            return;
+        }
         m_Log.WarnFormat(format, args);
-    }
-
-    public static void LogError(object message)
-    {
-        m_Log.Error(message);
     }
 
     public static void LogError(string format, params object[] args)
     {
+        if (args.Length == 0)
+        {
+            m_Log.Error(format);
+            return;
+        }
         m_Log.ErrorFormat(format, args);
-    }
-
-    public static void LogFatal(object message)
-    {
-        m_Log.Fatal(message);
     }
 
     public static void LogFatal(string format, params object[] args)
     {
+        if (args.Length == 0)
+        {
+            m_Log.Fatal(format);
+            return;
+        }
         m_Log.FatalFormat(format, args);
     }
 }

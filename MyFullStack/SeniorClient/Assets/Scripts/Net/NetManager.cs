@@ -3,26 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using UnityEngine;
 
 public class NetManager : Singleton<NetManager>
 {
-    public enum NetEvent 
-    {
-        ConnectSucc = 1,
-        ConnectFail = 2,
-        Close = 3,
-    }
-
-    public string PublicKey = "DongServer_PublicKey";
-
-    public string SecretKey { get; private set; }
-
     private Socket m_Socket;
-
     private ByteArray m_ReadBuff;
-
     private string m_Ip;
     private int m_Port;
 
@@ -31,10 +19,6 @@ public class NetManager : Singleton<NetManager>
     private bool m_Closing = false;
 
     private Thread m_MsgThread;
-    private Thread m_HeartThread;
-
-    static long lastPingTime;
-    static long lastPongTime;
 
     private Queue<ByteArray> m_WriteQueue;
 
@@ -42,11 +26,7 @@ public class NetManager : Singleton<NetManager>
     private List<MsgBase> m_UnityMsgList;
     //消息列表长度
     private int m_MsgCount = 0;
-
-    public static long m_PingInterval = 30;
-
-    public delegate void EventListener(string str);
-    private Dictionary<NetEvent, EventListener> m_ListenerDic = new Dictionary<NetEvent, EventListener>();
+    
     public delegate void ProtoListener(MsgBase msg);
     private Dictionary<ProtocolEnum, ProtoListener> m_ProtoDic = new Dictionary<ProtocolEnum, ProtoListener>();
 
@@ -57,56 +37,23 @@ public class NetManager : Singleton<NetManager>
 
     private NetworkReachability m_CurNetWork = NetworkReachability.NotReachable;
 
-    public IEnumerator CheckNet() 
+    public IEnumerator CheckNet()
     {
         m_CurNetWork = Application.internetReachability;
-        while (true) 
+        while (true)
         {
             yield return new WaitForSeconds(1);
-            if (m_IsConnectSuccessed) 
+            if (m_Socket == null && !m_Socket.Connected)
             {
-                if (m_CurNetWork != Application.internetReachability) 
+                if (m_IsConnectSuccessed)
                 {
-                    ReConnect();
-                    m_CurNetWork = Application.internetReachability;
+                    if (m_CurNetWork != Application.internetReachability)
+                    {
+                        ReConnect();
+                        m_CurNetWork = Application.internetReachability;
+                    }
                 }
             }
-        }
-    }
-    /// <summary>
-    /// 监听链接事件
-    /// </summary>
-    /// <param name="netEvent"></param>
-    /// <param name="listener"></param>
-    public void AddEventListener(NetEvent netEvent, EventListener listener) 
-    {
-        if (m_ListenerDic.ContainsKey(netEvent))
-        {
-            m_ListenerDic[netEvent] += listener;
-        }
-        else 
-        {
-            m_ListenerDic[netEvent] = listener;
-        }
-    }
-
-    public void RemoveEventListener(NetEvent netEvent, EventListener listener)
-    {
-        if (m_ListenerDic.ContainsKey(netEvent))
-        {
-            m_ListenerDic[netEvent] -= listener;
-            if (m_ListenerDic[netEvent] == null)
-            {
-                m_ListenerDic.Remove(netEvent);
-            }
-        }
-    }
-
-    void FirstEvent(NetEvent netEvent, string str) 
-    {
-        if (m_ListenerDic.ContainsKey(netEvent)) 
-        {
-            m_ListenerDic[netEvent](str);
         }
     }
 
@@ -140,7 +87,7 @@ public class NetManager : Singleton<NetManager>
         }
 
         //断开链接后，链接服务器之后自动登录
-        if (!string.IsNullOrEmpty(SecretKey) && m_Socket.Connected && m_ReConnect) 
+        if (m_Socket.Connected && m_ReConnect) 
         {
             //在本地保存了我们的账户和token，然后进行判断有无账户和token，
 
@@ -202,43 +149,14 @@ public class NetManager : Singleton<NetManager>
 
             if (msgBase != null)
             {
-                if (msgBase is MsgPing)
+                lock (m_UnityMsgList) 
                 {
-                    lastPongTime = GetTimeStamp();
-                    Debug.Log("收到心跳包！！！！！！！");
-                    m_MsgCount--;
-                }
-                else 
-                {
-                    lock (m_UnityMsgList) 
-                    {
-                        m_UnityMsgList.Add(msgBase);
-                    }
+                    m_UnityMsgList.Add(msgBase);
                 }
             }
             else 
             {
                 break;
-            }
-        }
-    }
-
-    void PingThread() 
-    {
-        while (m_Socket != null && m_Socket.Connected)
-        {
-            long timeNow = GetTimeStamp();
-            if (timeNow - lastPingTime > m_PingInterval) 
-            {
-                MsgPing msgPing = new MsgPing();
-                SendMessage(msgPing);
-                lastPingTime = GetTimeStamp();
-            }
-
-            //如果心跳包过长时间没收到，就关闭连接
-            if (timeNow - lastPongTime > m_PingInterval * 4) 
-            {
-                Close(false);
             }
         }
     }
@@ -292,8 +210,6 @@ public class NetManager : Singleton<NetManager>
         m_MsgList = new List<MsgBase>();
         m_UnityMsgList = new List<MsgBase>();
         m_MsgCount = 0;
-        lastPingTime = GetTimeStamp();
-        lastPongTime = GetTimeStamp();
     }
 
     /// <summary>
@@ -306,23 +222,21 @@ public class NetManager : Singleton<NetManager>
         {
             Socket socket = (Socket)ar.AsyncState;
             socket.EndConnect(ar);
-            FirstEvent(NetEvent.ConnectSucc, "");
             m_IsConnectSuccessed = true;
             m_MsgThread = new Thread(MsgThread);
             m_MsgThread.IsBackground = true;
             m_MsgThread.Start();
             m_Connecting = false;
-            m_HeartThread = new Thread(PingThread);
-            m_HeartThread.IsBackground = true;
-            m_HeartThread.Start();
-            ProtocolMgr.SecretRequest();
             Debug.Log("Socket Connect Success");
+            
             m_Socket.BeginReceive(m_ReadBuff.Bytes,m_ReadBuff.WriteIdx,m_ReadBuff.Remain,0, ReceiveCallBack, socket);
+            EventCenter.Broadcast(EventDefine.SocketConnectSuccess);
         }
         catch (SocketException ex) 
         {
             Debug.LogError("Socket Connect fail:" + ex.ToString());
             m_Connecting = false;
+            EventCenter.Broadcast(EventDefine.SocketConnectFail);
         }
     }
 
@@ -365,19 +279,23 @@ public class NetManager : Singleton<NetManager>
     /// </summary>
     void OnReceiveData() 
     {
-        if (m_ReadBuff.Length <= 4 || m_ReadBuff.ReadIdx < 0)
+        if (m_ReadBuff.Length <= 2 || m_ReadBuff.ReadIdx < 0)
             return;
-
+        
         int readIdx = m_ReadBuff.ReadIdx;
         byte[] bytes = m_ReadBuff.Bytes;
-        int bodyLength = BitConverter.ToInt32(bytes, readIdx);
+        
         //读取协议长度之后进行判断，如果消息长度小于读出来的消息长度，证明是没有一条完整的数据
-        if (m_ReadBuff.Length < bodyLength + 4) 
+        int bodyLength = BitConverter.ToUInt16(bytes, readIdx);
+        if (m_ReadBuff.Length < bodyLength + 2) 
         {
             return;
         }
 
-        m_ReadBuff.ReadIdx += 4;
+        string msg = Encoding.UTF8.GetString(m_ReadBuff.Bytes, 2, m_ReadBuff.WriteIdx);
+        Debug.LogError("收到数据:"+msg);
+
+        m_ReadBuff.ReadIdx += 2;
         int nameCount = 0;
         ProtocolEnum protocol = MsgBase.DecodeName(m_ReadBuff.Bytes, m_ReadBuff.ReadIdx, out nameCount);
         if (protocol == ProtocolEnum.None) 
@@ -405,10 +323,11 @@ public class NetManager : Singleton<NetManager>
             lock (m_MsgList) 
             {
                 m_MsgList.Add(msgBase);
+                Debug.Log(msgBase.ToString());
             }
             m_MsgCount++;
             //处理粘包
-            if (m_ReadBuff.Length > 4) 
+            if (m_ReadBuff.Length > 2) 
             {
                 OnReceiveData();
             }
@@ -420,6 +339,61 @@ public class NetManager : Singleton<NetManager>
         }
     }
 
+    /// <summary>
+    /// 发送数据到服务器
+    /// </summary>
+    /// <param name="msg"></param>
+    public void SendMessage(string msg)
+    {
+        if (m_Socket == null || !m_Socket.Connected) 
+        {
+            return;
+        }
+
+        if (m_Connecting) 
+        {
+            Debug.LogError("正在链接服务器中，无法发送消息！");
+            return;
+        }
+
+        if (m_Closing) 
+        {
+            Debug.LogError("正在关闭链接中，无法发送消息!");
+            return;
+        }
+        
+        try
+        {
+            byte[] dataBuff = System.Text.Encoding.UTF8.GetBytes(msg);
+            byte[] lenBuff = BitConverter.GetBytes((ushort) dataBuff.Length);
+            if (!BitConverter.IsLittleEndian)
+            {
+                lenBuff.Reverse();
+            }
+            byte[] sendBytes = lenBuff.Concat(dataBuff).ToArray();
+            ByteArray ba = new ByteArray(sendBytes);
+            
+            int count = 0;
+            lock (m_WriteQueue) 
+            {
+                m_WriteQueue.Enqueue(ba);
+                count = m_WriteQueue.Count;
+            }
+
+            if (count == 1) 
+            {
+                m_Socket.BeginSend(sendBytes, 0, sendBytes.Length, 0, SendCallBack, m_Socket);
+                EventCenter.Broadcast(EventDefine.SocketSendMessageSuccess);
+            }
+        }
+        catch (Exception ex) 
+        {
+            Debug.LogError("SendMessage error:" + ex.ToString());
+            EventCenter.Broadcast(EventDefine.SocketSendMessageFail);
+            Close();
+        }
+    }
+    
     /// <summary>
     /// 发送数据到服务器
     /// </summary>
@@ -446,14 +420,17 @@ public class NetManager : Singleton<NetManager>
         try
         {
             byte[] nameBytes = MsgBase.EncodeName(msgBase);
-            byte[] bodyBytes = MsgBase.Encond(msgBase);
-            int len = nameBytes.Length + bodyBytes.Length;
-            byte[] byteHead = BitConverter.GetBytes(len);
-            byte[] sendBytes = new byte[byteHead.Length + len];
-            Array.Copy(byteHead, 0, sendBytes, 0, byteHead.Length);
-            Array.Copy(nameBytes, 0, sendBytes, byteHead.Length, nameBytes.Length);
-            Array.Copy(bodyBytes, 0, sendBytes, byteHead.Length + nameBytes.Length, bodyBytes.Length);
+            byte[] bodyBytes = MsgBase.Encode(msgBase);
+            byte[] dataBuff = nameBytes.Concat(bodyBytes).ToArray();
+
+            byte[] lenBuff = BitConverter.GetBytes((ushort) dataBuff.Length);
+            if (!BitConverter.IsLittleEndian)
+            {
+                lenBuff.Reverse();
+            }
+            byte[] sendBytes = lenBuff.Concat(dataBuff).ToArray();
             ByteArray ba = new ByteArray(sendBytes);
+            
             int count = 0;
             lock (m_WriteQueue) 
             {
@@ -551,40 +528,20 @@ public class NetManager : Singleton<NetManager>
 
     void RealClose(bool normal = true) 
     {
-        SecretKey = "";
         m_Socket.Close();
-        FirstEvent(NetEvent.Close, normal.ToString());
         m_Diaoxian = true;
-        if (m_HeartThread != null && m_HeartThread.IsAlive)
-        {
-            m_HeartThread.Abort();
-            m_HeartThread = null;
-        }
         if (m_MsgThread != null && m_MsgThread.IsAlive)
         {
             m_MsgThread.Abort();
             m_MsgThread = null;
         }
         Debug.Log("Close Socket");
-    }
-
-    public void SetKey(string key) 
-    {
-        SecretKey = key;
+        EventCenter.Broadcast(EventDefine.SocketCloseSuccess);
     }
 
     public static long GetTimeStamp()
     {
         TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
         return Convert.ToInt64(ts.TotalSeconds);
-    }
-
-    /// <summary>
-    /// 是否链接
-    /// </summary>
-    /// <returns></returns>
-    public bool IsConnect()
-    {
-        return m_MsgThread != null;
     }
 }
