@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;_DEBUG;;XLUA_GENERAL;XLUA_ALL_OBSOLETE;THREAD_SAFE</DefineConstants>
+    <OutputPath>../</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="template\**" />
+    <EmbeddedResource Remove="template\**" />
+    <None Remove="template\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyXlua\MyXlua.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Src\" />
+    <Folder Include="editor\" />
+  </ItemGroup>
+
+</Project>

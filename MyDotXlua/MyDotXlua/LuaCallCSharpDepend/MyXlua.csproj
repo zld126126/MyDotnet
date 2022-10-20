@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;_DEBUG;;XLUA_GENERAL;THREAD_SAFE</DefineConstants>
+    <OutputPath>../</OutputPath>
+  </PropertyGroup>
+
+</Project>

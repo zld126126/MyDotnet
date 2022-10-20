@@ -1,0 +1,103 @@
+<GlobalConfig CodeFontSize = "22"/>
+<BreakpointList>
+  <Breakpoint State = "BreakpointActive" Filename = "MyDotXlua.lua" LineIndex = "11"/>
+</BreakpointList>
+<WatchList/>
+<ProjectUI>
+  <TreeState BaseX = "0" BaseY = "0" AlternativeItem = "LuaFolders#netcoreapp3.1#.lpproj">
+    <SelectedList>
+      <Selected Path = "LuaFolders#netcoreapp3.1#MyDotXlua.lua"/>
+    </SelectedList>
+    <ExpandedList>
+      <Expanded Path = "LuaFolders"/>
+      <Expanded Path = "LuaFolders#netcoreapp3.1"/>
+    </ExpandedList>
+  </TreeState>
+</ProjectUI>
+<FindAnReplaceUI
+  Pattern = ""
+  MatchCase = "false"
+  MatchWholeWord = "false"
+  UseRegEx = "false"
+  Target = ""
+  Replace = ""/>
+<MainWindow
+  X = "2170"
+  Y = "187"
+  Width = "1280"
+  Height = "720"
+  Maximized = "true"
+  LastCodeFilename = "D:/my_project/MyDotnet/MyDotXlua/netcoreapp3.1/MyDotXlua.lua">
+  <DockingControl>
+    <DockingNode DockingDirection = "Horizontal">
+      <DockingNode DockingDirection = "None">
+        <DockingBlock Width = "443" Height = "923" DocumentStyle = "false">
+          <DockingCard
+            Text = "Project"
+            Tag = ""
+            ActivePage = "true"
+            ActivateTime = "0"/>
+          <DockingCard
+            Text = "Outline"
+            Tag = ""
+            ActivePage = "false"
+            ActivateTime = "0"/>
+        </DockingBlock>
+      </DockingNode>
+      <DockingNode DockingDirection = "Vertical">
+        <DockingNode DockingDirection = "None">
+          <DockingBlock Width = "1458" Height = "571" DocumentStyle = "true">
+            <DockingCard
+              Text = "MyDotXlua.lua"
+              Tag = "D:/my_project/MyDotnet/MyDotXlua/netcoreapp3.1/MyDotXlua.lua"
+              ActivePage = "true"
+              ActivateTime = "34076267"
+              CaretLineIndex = "11"
+              CaretCodeCharIndex = "0"
+              BaseX = "0"
+              BaseY = "0"/>
+          </DockingBlock>
+        </DockingNode>
+        <DockingNode DockingDirection = "None">
+          <DockingBlock Width = "1458" Height = "345" DocumentStyle = "false">
+            <DockingCard
+              Text = "Output"
+              Tag = ""
+              ActivePage = "true"
+              ActivateTime = "0"/>
+            <DockingCard
+              Text = "Call Stack"
+              Tag = ""
+              ActivePage = "false"
+              ActivateTime = "0"/>
+            <DockingCard
+              Text = "Locals"
+              Tag = ""
+              ActivePage = "false"
+              ActivateTime = "0"/>
+            <DockingCard
+              Text = "Globals"
+              Tag = ""
+              ActivePage = "false"
+              ActivateTime = "0"/>
+            <DockingCard
+              Text = "Watches"
+              Tag = ""
+              ActivePage = "false"
+              ActivateTime = "0"/>
+            <DockingCard
+              Text = "Autos"
+              Tag = ""
+              ActivePage = "false"
+              ActivateTime = "0"/>
+            <DockingCard
+              Text = "Breakpoints"
+              Tag = ""
+              ActivePage = "false"
+              ActivateTime = "0"/>
+          </DockingBlock>
+        </DockingNode>
+      </DockingNode>
+    </DockingNode>
+  </DockingControl>
+</MainWindow>

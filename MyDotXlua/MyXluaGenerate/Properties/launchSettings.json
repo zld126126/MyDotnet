@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MyXluaGenerate": {
+      "commandName": "Project",
+      "commandLineArgs": "\"MyDotXlua.dll\""
+    }
+  }
+}
